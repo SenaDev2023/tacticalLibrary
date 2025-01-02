@@ -1,0 +1,102 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+// A node to hold tactical categories and entries
+class KnowledgeNode {
+private:
+    std::unordered_map<std::string, KnowledgeNode> subCategories;
+    std::vector<std::string> entries;
+
+public:
+    // Add a subcategory
+    void addSubCategory(const std::string &name) {
+        if (subCategories.find(name) == subCategories.end()) {
+            subCategories[name] = KnowledgeNode();
+        }
+    }
+
+    // Add an entry
+    void addEntry(const std::string &entry) {
+        entries.push_back(entry);
+    }
+
+    // Get a subcategory
+    KnowledgeNode *getSubCategory(const std::string &name) {
+        if (subCategories.find(name) != subCategories.end()) {
+            return &subCategories[name];
+        }
+        return nullptr;
+    }
+
+    // Display entries and subcategories
+    void display(int level = 0) const {
+        std::string indent(level * 2, ' ');
+        
+        // Display entries
+        for (const auto &entry : entries) {
+            std::cout << indent << "- " << entry << "\n";
+        }
+
+        // Display subcategories recursively
+        for (const auto &[name, node] : subCategories) {
+            std::cout << indent << name << ":\n";
+            node.display(level + 1);
+        }
+    }
+};
+
+// Main knowledge library
+class KnowledgeLibrary {
+private:
+    KnowledgeNode root;
+
+public:
+    // Add a category
+    void addCategory(const std::string &path, const std::string &entry) {
+        KnowledgeNode *current = &root;
+        std::string delimiter = "/";
+        size_t start = 0, end = 0;
+
+        // Traverse or create categories based on the path
+        while ((end = path.find(delimiter, start)) != std::string::npos) {
+            std::string category = path.substr(start, end - start);
+            current->addSubCategory(category);
+            current = current->getSubCategory(category);
+            start = end + 1;
+        }
+
+        // Add the final entry
+        std::string lastCategory = path.substr(start);
+        if (!lastCategory.empty()) {
+            current->addSubCategory(lastCategory);
+            current = current->getSubCategory(lastCategory);
+        }
+        current->addEntry(entry);
+    }
+
+    // Display the library
+    void display() const {
+        root.display();
+    }
+};
+
+int main() {
+    KnowledgeLibrary library;
+
+    // Populate the library
+    library.addCategory("Combat & Warfare/Battle Shaping", "Deep Mission");
+    library.addCategory("Combat & Warfare/Battle Shaping", "Geometry");
+    library.addCategory("Combat & Warfare/Weapons Training", "Pistolcraft");
+    library.addCategory("Survival & Recon/Survival Skills", "Water & Fire");
+    library.addCategory("Survival & Recon/Survival Skills", "Medical");
+    library.addCategory("Technological Integration/Robotics & UAVs", "Autonomous Recon Drones");
+
+    // Display the library
+    std::cout << "Knowledge Tactical Library:\n\n";
+    library.display();
+
+    return 0;
+}
